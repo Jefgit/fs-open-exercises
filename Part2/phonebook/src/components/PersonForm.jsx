@@ -1,13 +1,13 @@
 import React from 'react'
 
-export const PersonForm = ({handler, name, setName, number, setNumber}) => {
+export const PersonForm = ({handler, setContact, contact}) => {
   return (
     <form onSubmit={handler}>
         <div>
-          name: <input value={name} onChange={(e) => setName(e.target.value)}/>
+          name: <input value={contact.name} onChange={(e) => setContact({...contact, name: e.target.value})}/>
         </div>
         <div>
-          number: <input value={number} onChange={(e) => setNumber(e.target.value)}/>
+          number: <input value={contact.number} onChange={(e) => setContact({...contact, number: e.target.value})}/>
         </div>
         <div>
           <button type="submit">add</button>
