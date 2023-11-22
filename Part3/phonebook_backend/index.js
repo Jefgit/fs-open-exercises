@@ -61,6 +61,7 @@ const generateId = () => {
 
   return newId
 }
+
 app.post('/api/persons', (request, response) => {
   const body = request.body
   if(!body.name || !body.number){
@@ -73,7 +74,6 @@ app.post('/api/persons', (request, response) => {
     return response.status(400).json({error: 'name must be unique'})
   }
 
-
   const newPerson = {
     id: generateId(),
     name: body.name,
@@ -81,7 +81,7 @@ app.post('/api/persons', (request, response) => {
   }
 
   persons = persons.concat(newPerson)
-
+  console.log(persons)
   response.json(persons)
 })
 

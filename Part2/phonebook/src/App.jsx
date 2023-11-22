@@ -34,7 +34,7 @@ const App = () => {
       id: persons.length + 1
     }
     const match = persons.find((person) => person.name === newContact.name)
-    console.log(match)
+    // console.log(match)
     if(match){
       if(window.confirm(
         `${newContact.name} is already added to phonebook, 
@@ -56,13 +56,13 @@ const App = () => {
         hideMessage()
       })
       }
-    } else{
+    } else {
       phonebookService
-      .create(newContact)
+      .create(contactObject)
       .then(returnedPerson => {
-        setPersons(prevPersons => ([...prevPersons, returnedPerson ]))
+        setPersons(returnedPerson)
         setNewContact({name:'', number:'', id:null})
-        setMessage({isError:false, content: `Added ${returnedPerson.name}`})
+        setMessage({isError:false, content: `Added ${contactObject.name}`})
         hideMessage()
       })
       .catch(err => {
