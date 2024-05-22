@@ -1,100 +1,111 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
+const Person = require('./models/phonebook')
 
-let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
+const errorHandler = (error, request, response, next) => {
+  console.log(error.message)
+
+  if (error.name === 'ValidationError') {
+    response.status(400).json({ error: error.message })
+  }
+
+  next(error)
+}
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
 
 app.use(express.static('dist'))
 app.use(express.json())
 
-app.get('/api/persons', (request, response) => {
-    response.json(persons)
+app.get('/api/persons', (request, response, next) => {
+  Person.find({})
+    .then((persons) => {
+      response.json(persons)
+    })
+    .catch((error) => next(error))
 })
 
-morgan.token('data', (req, res) => {
+morgan.token('data', (req) => {
   return JSON.stringify(req.body)
 })
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
 
-app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = persons.find(person => person.id === id)
+app.use(
+  morgan(':method :url :status :res[content-length] - :response-time ms :data')
+)
 
-  if(person){
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
-
+app.get('/api/persons/:id', (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((person) => {
+      response.json(person)
+    })
+    .catch((error) => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-
-  response.json(persons)
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then((result) => {
+      console.log(result)
+      response.status(204).end()
+    })
+    .catch((error) => next(error))
 })
 
-const generateId = () => {
-  const newId = Math.floor(Math.random() *1000) + 1
-
-  return newId
-}
-
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
-  if(!body.name || !body.number){
-    return response.status(400).json({error: 'name or number is missing'})
+  if (!body.name || !body.number) {
+    return response.status(400).json({ error: 'name or number is missing' })
   }
 
-  const personExist = persons.find(person => person.name === body.name)
+  const newPerson = new Person({
+    name: body.name,
+    number: body.number,
+  })
 
-  if(personExist){
-    return response.status(400).json({error: 'name must be unique'})
-  }
+  newPerson
+    .save()
+    .then((savePerson) => {
+      response.json(savePerson)
+    })
+    .catch((error) => next(error))
+})
 
-  const newPerson = {
-    id: generateId(),
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+
+  const person = {
     name: body.name,
     number: body.number,
   }
 
-  persons = persons.concat(newPerson)
-  console.log(persons)
-  response.json(persons)
+  Person.findByIdAndUpdate(request.params.id, person, {
+    new: true,
+    runValidators: true,
+    context: 'query',
+  })
+    .then((updatedPerson) => {
+      response.json(updatedPerson)
+    })
+    .catch((error) => next(error))
 })
 
-app.get('/api/info',(request, response) => {
-  const timeStamp =  new Date().toString();
-
-  const output = `<p>Phonebook has info for ${persons.length} people</p><br/>
-                  <p>${timeStamp}</p>`
-
+app.get('/api/info', (request, response) => {
+  const timeStamp = new Date().toString()
+  Person.find({}).then((person) => {
+    const output = `<p>Phonebook has info for ${person.length} people</p><br/>
+        <p>${timeStamp}</p>`
     response.send(output)
+  })
 })
 
-const PORT = process.env.PORT || 3002
+app.use(unknownEndpoint)
+
+app.use(errorHandler)
+
+const PORT = process.env.PORT
 app.listen(PORT, () => {
-  console.log('listening on port',PORT);
+  console.log('listening on port', PORT)
 })
