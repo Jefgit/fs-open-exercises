@@ -44,14 +44,16 @@ const App = () => {
       .update(match.id, changeContact)
       .then(changeContact => {
         setPersons(persons.map(person => person.id === match.id ? changeContact : person))
-        setMessage({isError:false, content: `Contact ${changeContact.name} updated`})
+        setMessage({
+          isError:false, content: `Contact ${changeContact.name} updated`})
         hideMessage()
       })
-      .catch(err => {
+      .catch(error => {
         setMessage({
           isError: true, 
-          content:`Information of ${changeContact.name} has already been removed from server`
-        })
+          content:error.response.data.error 
+          ? error.response.data.error 
+          : 'Something went wrong adding updating the contact...'})
         setPersons(persons.filter(person => person.id !== changeContact.id))
         hideMessage()
       })
@@ -60,13 +62,18 @@ const App = () => {
       phonebookService
       .create(contactObject)
       .then(returnedPerson => {
-        setPersons(returnedPerson)
+        setPersons([...persons,returnedPerson])
         setNewContact({name:'', number:'', id:null})
         setMessage({isError:false, content: `Added ${contactObject.name}`})
         hideMessage()
       })
-      .catch(err => {
-        setMessage({isError: true, content:'Something went wrong adding the contact...'})
+      .catch(error => {
+        console.log(error.response.data.error)
+        setMessage({
+          isError: true, 
+          content:error.response.data.error 
+          ? error.response.data.error 
+          : 'Something went wrong adding the contact...'})
         hideMessage()
       })
     }
