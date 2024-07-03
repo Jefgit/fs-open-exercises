@@ -22,6 +22,8 @@ const errorHandler = (error, request, response, next) => {
       .json({ error: 'Username must contain minimum of 3 characters' })
   } else if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.message })
+  } else if (error.name === 'TokenExpiredError') {
+    return response.status(401).json({ error: 'expired token' })
   }
 
   next(error)
@@ -43,9 +45,9 @@ const tokenExtractor = (request, response, next) => {
 }
 
 const userExtractor = async (request, response, next) => {
-  if (!request.token) {
-    return response.status(401).json({ error: 'invalid token' })
-  }
+  // if (!request.token) {
+  //   return response.status(401).json({ error: 'invalid token' })
+  // }
 
   const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
