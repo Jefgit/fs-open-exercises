@@ -12,6 +12,12 @@ const blogSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
+  comments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Comment',
+    },
+  ],
 })
 
 blogSchema.set('toJSON', {
@@ -21,4 +27,5 @@ blogSchema.set('toJSON', {
     delete returnedObject.__v
   },
 })
+
 module.exports = mongoose.model('Blog', blogSchema)
