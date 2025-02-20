@@ -18,6 +18,7 @@ const blogSchema = new mongoose.Schema({
       ref: 'Comment',
     },
   ],
+  imageUrl: String,
 })
 
 blogSchema.set('toJSON', {
